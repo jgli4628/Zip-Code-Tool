@@ -102,7 +102,7 @@
     // Show a confirmation and redirect
     resultEl.innerHTML = `${msg} <a href="${link}">Continue to booking </a>`;
     // Auto-redirect after a brief pause (optional; remove if you prefer click only)
-    setTimeout(() => { window.location.href = link; }, 2000);
+    setTimeout(() => { window.top.location.href = link; }, 800);
   }
 
   document.getElementById("onsite86-zip-form").addEventListener("submit", handleSubmit);

@@ -1,0 +1,118 @@
+<!-- Onsite86 ZIP → Route Redirect Widget -->
+<div class="onsite86-zip-widget" data-success-redirect="true">
+  <form id="onsite86-zip-form" novalidate>
+    <label for="onsite86-zip-input" class="onsite86-label">Enter your ZIP code</label>
+    <div class="onsite86-input-row">
+      <input
+        id="onsite86-zip-input"
+        name="zip"
+        inputmode="numeric"
+        autocomplete="postal-code"
+        pattern="\\d{5}"
+        maxlength="5"
+        placeholder="e.g., 95742"
+        required
+        class="onsite86-input"
+        aria-describedby="onsite86-help onsite86-error"
+      />
+      <button type="submit" class="onsite86-btn" aria-label="Find my service day">
+        Check Day
+      </button>
+    </div>
+    <div id="onsite86-help" class="onsite86-help">We'll route you to the correct booking page.</div>
+    <div id="onsite86-error" class="onsite86-error" role="alert" aria-live="polite"></div>
+    <div id="onsite86-result" class="onsite86-result" aria-live="polite"></div>
+  </form>
+</div>
+
+<style>
+  .onsite86-zip-widget { max-width: 520px; margin: 1rem auto; font-family: "League Spartan", serif; }
+  .onsite86-label { display:block; font-weight:600; margin-bottom:.35rem; }
+  .onsite86-input-row { display:flex; gap:.5rem; }
+  .onsite86-input {
+    flex:1; padding:.8rem 1rem; border:1px solid #d0d5dd; border-radius:.75rem; font-size:1rem;
+  }
+  .onsite86-input:focus { outline:none; border-color:#111827; box-shadow:0 0 0 3px rgba(17,24,39,.1); }
+  .onsite86-btn {
+    padding:.8rem 1rem; border:0; border-radius:.75rem; background:#111827; color:white; font-weight:600; cursor:pointer;
+  }
+  .onsite86-btn:hover { filter:brightness(1.05); }
+  .onsite86-help { font-size:.875rem; color:#667085; margin-top:.35rem; }
+  .onsite86-error { color:#b42318; margin-top:.35rem; font-weight:600; min-height:1.25em; }
+  .onsite86-result { margin-top:.5rem; font-weight:600; }
+  /* Optional small print */
+  .onsite86-muted { color:#667085; font-size:.875rem; }
+</style>
+
+<script>
+(() => {
+  // 1) ROUTE DESTINATIONS — replace with your live links
+  const routeLinks = {
+    1: "https://www.onsite86.com/products/routine-pickup-service-route-1",
+    2: "https://www.onsite86.com/products/junk-pickup-service-route-2",
+  };
+
+  // 2) ZIP → ROUTE GROUPS (from our earlier plan)
+  const routeZips = {
+    1: ["95677","95678","95661","95621","95843","95660","95673","95652","95841","95838","95815","95821","95608","95825","95819","95826","95827","95829","95864","95747","95842"],
+    2: ["95742","95670","95628","95610","95746","95662","95630","95762","95671","95655","95830"],
+  };
+
+  // Build a quick lookup Set for speed
+  const zipToRoute = new Map();
+  Object.entries(routeZips).forEach(([route, arr]) => {
+    arr.forEach(z => zipToRoute.set(z, Number(route)));
+  });
+
+  function normalizeZip(val) {
+    return (val || "").toString().trim().slice(0, 5).replace(/[^0-9]/g, "");
+  }
+
+  function getRouteByZip(zip) {
+    return zipToRoute.get(zip) || null;
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    const input = document.getElementById("onsite86-zip-input");
+    const errorEl = document.getElementById("onsite86-error");
+    const resultEl = document.getElementById("onsite86-result");
+    const raw = input.value;
+    const zip = normalizeZip(raw);
+
+    errorEl.textContent = "";
+    resultEl.textContent = "";
+
+    if (!/^\d{5}$/.test(zip)) {
+      errorEl.textContent = "Please enter a valid 5-digit ZIP code.";
+      input.focus();
+      return;
+    }
+
+    const route = getRouteByZip(zip);
+    if (!route) {
+      errorEl.innerHTML =
+        "Sorry, you are outside of out service area. " +
+        "<span class='onsite86-muted'>Please contact our support email at support@onsite86.com with your phone number or email, and we will notify you when your area is within service.</span>";
+      return;
+    }
+
+    const link = routeLinks[route];
+    const msg = `Your service day is Route ${route}.`;
+    // Show a confirmation and redirect
+    resultEl.innerHTML = `${msg} <a href="${link}">Continue to booking </a>`;
+    // Auto-redirect after a brief pause (optional; remove if you prefer click only)
+    setTimeout(() => { window.location.href = link; }, 2000);
+  }
+
+  document.getElementById("onsite86-zip-form").addEventListener("submit", handleSubmit);
+
+  // Accessibility: submit on Enter even if button not focused
+  document.getElementById("onsite86-zip-input").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      document.getElementById("onsite86-zip-form").dispatchEvent(new Event("submit"));
+    }
+  });
+})();
+</script>
